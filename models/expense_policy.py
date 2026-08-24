@@ -22,6 +22,9 @@ class ExpensePolicy(db.Model):
 
     is_active = db.Column(
         db.Boolean,
-        nullable = False,
-        default = True
+        nullable=False,
+        default=True
     )
+
+    # Relationships
+    category = db.relationship("ExpenseCategory", backref=db.backref("policy", uselist=False))

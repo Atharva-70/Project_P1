@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - ExpenseFlow{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="card-header-bar">
+  <div>
+    <h1 class="page-title">Employee Portal Overview</h1>
+  </div>
+  <div style="display: flex; gap: 10px;">
+    <a href="{{ url_for('ui.travel_new') }}" class="btn btn-outline">New Travel Request</a>
+    <a href="{{ url_for('ui.claim_new') }}" class="btn btn-primary">Create Expense Claim</a>
+  </div>
+</div>
+
+<!-- Metrics & Statistics Grid -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-title">Total Claims</div>
+    <div class="stat-value">{{ stats.total_claims if stats else 0 }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-title">Draft Claims</div>
+    <div class="stat-value" style="color: var(--badge-amber-text);">{{ stats.draft_claims if stats else 0 }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-title">Pending Approvals</div>
+    <div class="stat-value" style="color: var(--primary-blue);">{{ stats.submitted_claims if stats else 0 }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-title">Reimbursed Amount</div>
+    <div class="stat-value" style="color: var(--badge-green-text);">₹{{ stats.reimbursed_amount if stats else '0.00' }}</div>
+  </div>
+</div>
+
+<!-- Recent Claims Table Card matching Screenshot Style -->
+<div class="content-card">
+  <div class="card-header-bar" style="margin-bottom: 16px;">
+    <h2 style="font-size: 16px; font-weight: 700; color: var(--text-dark);">Recent Expense Claims</h2>
+    <a href="{{ url_for('ui.claim_list') }}" style="font-size: 13px; font-weight: 600;">View All Claims &rarr;</a>
+  </div>
+
+  <div class="table-container">
+    <table class="clean-table">
+      <thead>
+        <tr>
+          <th>Claim Number</th>
+          <th>Travel Request</th>
+          <th>Total Amount</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if recent_claims %}
+          {% for claim in recent_claims %}
+          <tr>
+            <td style="font-weight: 600;">{{ claim.claim_number }}</td>
+            <td style="color: var(--text-muted);">{{ claim.travel_request.travel_request_number if claim.travel_request else 'General' }}</td>
+            <td style="font-weight: 600;">₹{{ claim.total_amount }}</td>
+            <td>
+              {% if claim.status == 'APPROVED' %}
+                <span class="badge badge-green">Approved</span>
+              {% elif claim.status == 'FINANCE VERIFIED' %}
+                <span class="badge badge-blue">Verified</span>
+              {% elif claim.status == 'REIMBURSED' %}
+                <span class="badge badge-purple">Reimbursed</span>
+              {% elif claim.status == 'REJECTED' %}
+                <span class="badge badge-red-bg" style="color: var(--badge-red-text); background: var(--badge-red-bg);">Rejected</span>
+              {% else %}
+                <span class="badge badge-amber">{{ claim.status }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('ui.claim_details', claim_id=claim.ex_claim_id) }}" class="btn btn-outline btn-sm">View Details</a>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">
+              No claims submitted yet. Click "Create Expense Claim" to get started!
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

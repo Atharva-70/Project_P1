@@ -1,58 +1,96 @@
-from controllers import expense_category_controller
-from flask_jwt_extended import jwt_required
-from flask import Blueprint, request, jsonify
-from werkzeug.utils import secure_filename
 import os
-from services.expense_receipt_service import create_expense_receipt
+from flask import Blueprint, request, jsonify, send_file, session
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from utils.serializers import receipt_to_dict
+from services.expense_receipt_service import (
+    upload_and_save_receipt,
+    get_receipt_for_download
+)
 
 expense_receipt_bp = Blueprint("expense_receipt", __name__)
+
+
 @expense_receipt_bp.route("/expense_receipt", methods=['POST'])
+@expense_receipt_bp.route("/expense_receipts", methods=['POST'])
 @jwt_required()
 def create_receipt():
     expense_item_id = request.form.get("expense_item_id")
     file = request.files.get("file")
-    
+
     if not expense_item_id or not file:
-        return jsonify({
-            "message": "Expense item ID and file are required"
-        }), 400
+        return jsonify({"message": "Expense item ID and file are required"}), 400
 
-    filename = secure_filename(file.filename)
-    upload_folder = "uploads/receipts"
+    user_id = int(get_jwt_identity())
 
-    os.makedirs(
-        upload_folder,
-        exist_ok=True
+    expense_receipt, error, status_code = upload_and_save_receipt(
+        user_id=user_id,
+        expense_item_id=int(expense_item_id),
+        file=file
     )
-    
-
-    file_path = os.path.join(
-        upload_folder,
-        filename
-    )
-    
-    file.save(file_path)
-
-    file_size = os.path.getsize(file_path)
-
-    expense_receipt, error = create_expense_receipt(
-    int(expense_item_id),
-    filename,
-    file_path,
-    file_size
-    )   
 
     if error:
-        return jsonify({
-            "message": error
-        }), 400
+        return jsonify({"message": error}), status_code
 
-    return jsonify({
-        "message": "Expense receipt uploaded successfully",
-        "receipt_id": expense_receipt.ex_receipt_id,
-        "expense_item_id": expense_receipt.expense_item_id,
-        "file_name": expense_receipt.file_name,
-        "file_path": expense_receipt.file_path,
-        "file_size": expense_receipt.file_size
-    }), 201
-    
+    res = receipt_to_dict(expense_receipt)
+    res["message"] = "Expense receipt uploaded successfully"
+    return jsonify(res), status_code
+
+
+@expense_receipt_bp.route("/expense_receipt/<int:receipt_id>/download", methods=['GET'])
+@expense_receipt_bp.route("/expense_receipts/<int:receipt_id>/download", methods=['GET'])
+@jwt_required(optional=True)
+def download_receipt(receipt_id):
+    jwt_id = get_jwt_identity()
+    if jwt_id:
+        user_id = int(jwt_id)
+        claims = get_jwt()
+        role = claims.get("role")
+    else:
+        user_id = session.get("user_id")
+        role = session.get("role")
+
+    if not user_id:
+        return jsonify({"message": "Authentication required"}), 401
+
+    receipt, error, status_code = get_receipt_for_download(user_id, role, receipt_id)
+    if error:
+        return jsonify({"message": error}), status_code
+
+    if not os.path.exists(receipt.file_path):
+        return jsonify({"message": "File not found on server disk"}), 404
+
+    return send_file(
+        receipt.file_path,
+        as_attachment=True,
+        download_name=receipt.file_name
+    )
+
+
+@expense_receipt_bp.route("/expense_receipt/<int:receipt_id>/view", methods=['GET'])
+@expense_receipt_bp.route("/expense_receipts/<int:receipt_id>/view", methods=['GET'])
+
+@jwt_required(optional=True)
+def view_receipt(receipt_id):
+    jwt_id = get_jwt_identity()
+    if jwt_id:
+        user_id = int(jwt_id)
+        claims = get_jwt()
+        role = claims.get("role")
+    else:
+        user_id = session.get("user_id")
+        role = session.get("role")
+
+    if not user_id:
+        return jsonify({"message": "Authentication required"}), 401
+
+    receipt, error, status_code = get_receipt_for_download(user_id, role, receipt_id)
+    if error:
+        return jsonify({"message": error}), status_code
+
+    if not os.path.exists(receipt.file_path):
+        return jsonify({"message": "File not found on server disk"}), 404
+
+    return send_file(
+        receipt.file_path,
+        as_attachment=False
+    )

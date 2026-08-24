@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Expense & Travel Portal{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Top Navbar Header matching user screenshot -->
+  <header class="top-navbar">
+    <div class="brand-container">
+      <span>Expense Portal</span>
+    </div>
+
+    {% if session.get('user_id') %}
+    <nav class="nav-tabs-container">
+      <a href="{{ url_for('ui.dashboard') }}" class="nav-tab-item {% if active_page == 'dashboard' %}active{% endif %}">
+        Dashboard
+      </a>
+      <a href="{{ url_for('ui.travel_list') }}" class="nav-tab-item {% if active_page == 'travel' %}active{% endif %}">
+        Travel Requests
+      </a>
+      <a href="{{ url_for('ui.claim_list') }}" class="nav-tab-item {% if active_page == 'claims' %}active{% endif %}">
+        Expense Claims
+      </a>
+
+      {% if session.get('role') in ['MANAGER', 'ADMIN'] %}
+      <a href="{{ url_for('ui.manager_approvals') }}" class="nav-tab-item {% if active_page == 'approvals' %}active{% endif %}">
+        Manager Approvals
+      </a>
+      {% endif %}
+
+      {% if session.get('role') in ['FINANCE', 'ADMIN'] %}
+      <a href="{{ url_for('ui.finance_dashboard') }}" class="nav-tab-item {% if active_page == 'finance' %}active{% endif %}">
+        Finance Queue
+      </a>
+      <a href="{{ url_for('ui.reports') }}" class="nav-tab-item {% if active_page == 'reports' %}active{% endif %}">
+        Reports
+      </a>
+      {% endif %}
+    </nav>
+
+    <div class="nav-user-actions">
+      <a href="{{ url_for('ui.profile_view') }}" class="user-badge">
+        {{ session.get('user_name', session.get('email', 'User')) }} ({{ session.get('role', 'EMPLOYEE') }})
+      </a>
+      <a href="{{ url_for('ui.logout') }}" class="btn btn-outline btn-sm">Logout</a>
+    </div>
+    {% else %}
+    <div class="nav-user-actions">
+      <a href="{{ url_for('ui.login') }}" class="btn btn-outline btn-sm">Login</a>
+      <a href="{{ url_for('ui.register') }}" class="btn btn-primary btn-sm">Register</a>
+    </div>
+    {% endif %}
+  </header>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+    <!-- Flash Messages (Pure HTML alerts) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category if category != 'error' else 'danger' }}">
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+</body>
+</html>

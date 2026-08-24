@@ -33,6 +33,10 @@ class ApprovalHistory(db.Model):
 
     action_at = db.Column(
         db.DateTime,
-        nullable = False,
-        default = datetime.utcnow
+        nullable=False,
+        default=datetime.utcnow
     )
+
+    # Relationships
+    user = db.relationship("User", backref="approval_actions")
+

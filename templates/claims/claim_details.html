@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Claim {{ claim.claim_number }} - ExpenseFlow{% endblock %}
+
+{% block content %}
+<!-- Claim Header Card -->
+<div class="content-card">
+  <div class="card-header-bar">
+    <div>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
+        <h1 class="page-title">Claim {{ claim.claim_number }}</h1>
+        {% if claim.status == 'APPROVED' %}
+          <span class="badge badge-green">Approved</span>
+        {% elif claim.status == 'FINANCE VERIFIED' %}
+          <span class="badge badge-blue">Verified</span>
+        {% elif claim.status == 'REIMBURSED' %}
+          <span class="badge badge-purple">Reimbursed</span>
+        {% elif claim.status == 'REJECTED' %}
+          <span class="badge badge-red-bg" style="color: var(--badge-red-text); background: var(--badge-red-bg);">Rejected</span>
+        {% elif claim.status == 'SUBMITTED' %}
+          <span class="badge badge-amber">Under Manager Review</span>
+        {% else %}
+          <span class="badge" style="background: var(--bg-canvas); color: var(--text-muted); border: 1px solid var(--border-color);">Draft Mode</span>
+        {% endif %}
+      </div>
+      <p style="color: var(--text-muted); font-size: 13px;">
+        Associated Travel: <strong>{{ claim.travel_request.travel_request_number if claim.travel_request else 'General' }}</strong>
+        ({{ claim.travel_request.source if claim.travel_request else '' }} &rarr; {{ claim.travel_request.destination if claim.travel_request else '' }})
+      </p>
+    </div>
+    <div style="text-align: right;">
+      <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Total Claim Amount</div>
+      <div style="font-size: 26px; font-weight: 800; color: var(--primary-blue);">₹{{ claim.total_amount }}</div>
+    </div>
+  </div>
+
+  <!-- Rejection Alert Card matching user screenshot -->
+  {% if claim.status == 'REJECTED' %}
+    <div class="error-notice-card" style="margin-bottom: 20px;">
+      <strong>Manager Rejection Notice:</strong>
+      <ul>
+        {% for hist in history if hist.action == 'REJECTED' %}
+          <li>• Reason: {{ hist.comments }} (Actioned on: {{ hist.action_at }})</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <!-- Submit Action Bar -->
+  {% if claim.status in ['DRAFT', 'REJECTED'] %}
+    <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+      <div>
+        <div style="font-weight: 600; font-size: 14px;">Ready to Submit?</div>
+        <div style="font-size: 12px; color: var(--text-muted);">Ensure all line items have receipts attached before submitting.</div>
+      </div>
+      <form method="POST" action="{{ url_for('ui.claim_submit', claim_id=claim.ex_claim_id) }}">
+        <button type="submit" class="btn btn-success">Submit for Manager Approval</button>
+      </form>
+    </div>
+  {% endif %}
+
+  <!-- Itemized Expenses Table matching user screenshot -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+    <h2 style="font-size: 16px; font-weight: 700; color: var(--text-dark);">Itemized Expenses</h2>
+    <span style="font-size: 12px; color: var(--text-muted);">{{ items|length }} item(s) logged</span>
+  </div>
+
+  <div class="table-container">
+    <table class="clean-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Attached Receipts</th>
+          {% if claim.status in ['DRAFT', 'REJECTED'] %}
+            <th>Actions</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% if items %}
+          {% for item in items %}
+          <tr>
+            <td style="font-weight: 600;">
+              {{ item.category.category_name if item.category else 'Other' }}
+            </td>
+            <td style="color: var(--text-muted);">{{ item.expense_date }}</td>
+            <td>{{ item.description }}</td>
+            <td style="font-weight: 700; font-size: 13px;">₹{{ item.amount }}</td>
+            <td>
+              {% if item.receipts %}
+                {% for r in item.receipts %}
+                  <a href="{{ url_for('expense_receipt.view_receipt', receipt_id=r.ex_receipt_id) }}" target="_blank" class="badge badge-blue" style="margin-bottom: 4px; display: inline-flex;">
+                    {{ r.file_name }}
+                  </a>
+                {% endfor %}
+              {% else %}
+                <span style="color: var(--text-light); font-size: 12px; display: block; margin-bottom: 4px;">No receipt attached</span>
+              {% endif %}
+
+              {% if claim.status in ['DRAFT', 'REJECTED'] %}
+                <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
+                  <!-- 1. Auto-Generate Button -->
+                  <form method="POST" action="{{ url_for('ui.item_generate_receipt', item_id=item.ex_item_id) }}">
+                    <button type="submit" class="btn btn-outline btn-sm" style="font-size: 11px; padding: 2px 8px; width: 100%; border-color: var(--primary-blue); color: var(--primary-blue);">
+                      Generate PDF Receipt
+                    </button>
+                  </form>
+              {% endif %}
+            </td>
+            {% if claim.status in ['DRAFT', 'REJECTED'] %}
+            <td>
+              <form method="POST" action="{{ url_for('ui.item_delete', item_id=item.ex_item_id) }}">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this line item?');">
+                  Delete
+                </button>
+              </form>
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">
+              No line items added yet. Use the form below to add expenses.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add New Line Item Form -->
+  {% if claim.status in ['DRAFT', 'REJECTED'] %}
+    <div style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; margin-top: 24px;">
+      <h3 style="font-size: 14px; font-weight: 700; color: var(--text-dark); margin-bottom: 14px;">
+        Add Expense Line Item
+      </h3>
+
+      <form method="POST" action="{{ url_for('ui.item_create', claim_id=claim.ex_claim_id) }}">
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label class="form-label" for="category_id">Category</label>
+            <select id="category_id" name="category_id" class="form-control" required>
+              <option value="">-- Choose Category --</option>
+              {% for cat in categories %}
+                <option value="{{ cat.ex_category_id }}">{{ cat.category_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="amount">Amount (₹)</label>
+            <input type="number" step="0.01" id="amount" name="amount" class="form-control" placeholder="e.g. 850.00" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="expense_date">Expense Date</label>
+            <input type="date" id="expense_date" name="expense_date" class="form-control" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="description">Expense Description / Business Justification</label>
+          <input type="text" id="description" name="description" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-sm">Add Item</button>
+      </form>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Audit Trail History Timeline Card -->
+<div class="content-card">
+  <h2 style="font-size: 16px; font-weight: 700; color: var(--text-dark); margin-bottom: 16px;">
+    Audit Trail & Approval History
+  </h2>
+
+  {% if history %}
+    <ul class="audit-timeline">
+      {% for entry in history %}
+        <li class="audit-item">
+          <div class="audit-item-header">
+            <strong>{{ entry.action }}</strong>
+            <span class="audit-item-time">{{ entry.action_at }}</span>
+          </div>
+          {% if entry.comments %}
+            <div class="audit-item-comment">
+              "{{ entry.comments }}"
+            </div>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p style="color: var(--text-muted); font-size: 13px;">No history records logged yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

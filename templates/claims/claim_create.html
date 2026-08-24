@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Create Claim - ExpenseFlow{% endblock %}
+
+{% block content %}
+<div style="max-width: 650px; margin: 0 auto;">
+  <div class="content-card">
+    <div class="card-header-bar">
+      <div>
+        <h1 class="page-title">Initialize Expense Claim</h1>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Link your expense claim to an approved travel request</p>
+      </div>
+      <a href="{{ url_for('ui.claim_list') }}" class="btn btn-outline btn-sm">&larr; Back</a>
+    </div>
+
+    <form method="POST" action="{{ url_for('ui.claim_new') }}">
+      <div class="form-group">
+        <label class="form-label" for="claim_number">Expense Claim Number / Identifier</label>
+        <input type="text" id="claim_number" name="claim_number" class="form-control" placeholder="e.g. CLM-2026-001" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="travel_id">Select Associated Business Travel Request</label>
+        <select id="travel_id" name="travel_id" class="form-control" required>
+          <option value="">-- Choose Travel Request --</option>
+          {% for trv in travel_requests %}
+            <option value="{{ trv.travel_id }}">
+              {{ trv.travel_request_number }} ({{ trv.source }} &rarr; {{ trv.destination }} | {{ trv.status }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <a href="{{ url_for('ui.claim_list') }}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary">Create Claim Draft</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

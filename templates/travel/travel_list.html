@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Travel Requests - ExpenseFlow{% endblock %}
+
+{% block content %}
+<div class="content-card">
+  <div class="card-header-bar">
+    <div>
+      <h1 class="page-title">Business Travel Requests</h1>
+      <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Track and submit travel requests before incurring travel expenses</p>
+    </div>
+    <a href="{{ url_for('ui.travel_new') }}" class="btn btn-primary">New Travel Request</a>
+  </div>
+
+  <div class="table-container">
+    <table class="clean-table">
+      <thead>
+        <tr>
+          <th>Request Number</th>
+          <th>Source to Destination</th>
+          <th>Travel Dates</th>
+          <th>Purpose</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if travel_requests %}
+          {% for trv in travel_requests %}
+          <tr>
+            <td style="font-weight: 600;">{{ trv.travel_request_number }}</td>
+            <td style="font-weight: 500;">{{ trv.source }} &rarr; {{ trv.destination }}</td>
+            <td style="color: var(--text-muted);">{{ trv.start_date }} to {{ trv.end_date }}</td>
+            <td>{{ trv.purpose }}</td>
+            <td>
+              {% if trv.status == 'APPROVED' %}
+                <span class="badge badge-green">Approved</span>
+              {% elif trv.status == 'REJECTED' %}
+                <span class="badge badge-red-bg" style="color: var(--badge-red-text); background: var(--badge-red-bg);">Rejected</span>
+              {% else %}
+                <span class="badge badge-amber">Pending Review</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">
+              No travel requests recorded yet. Click "New Travel Request" to submit one.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

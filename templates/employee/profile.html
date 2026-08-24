@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}My Profile - ExpenseFlow{% endblock %}
+
+{% block content %}
+<div style="max-width: 760px; margin: 0 auto;">
+  <div class="content-card">
+    <div class="card-header-bar">
+      <div>
+        <h1 class="page-title">Employee Profile</h1>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Manage your personal and banking details for reimbursements</p>
+      </div>
+      <span class="user-badge">{{ employee.emp_code if employee else 'EMP-NEW' }}</span>
+    </div>
+
+    <form method="POST" action="{{ url_for('ui.profile_update') }}">
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="first_name">First Name</label>
+          <input type="text" id="first_name" name="first_name" class="form-control" value="{{ employee.first_name if employee else '' }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="last_name">Last Name</label>
+          <input type="text" id="last_name" name="last_name" class="form-control" value="{{ employee.last_name if employee else '' }}" required>
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="phone">Phone Number</label>
+          <input type="text" id="phone" name="phone" class="form-control" value="{{ employee.phone if employee else '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="department">Department</label>
+          <input type="text" id="department" name="department" class="form-control" value="{{ employee.department if employee else '' }}">
+        </div>
+      </div>
+
+      <h3 style="font-size: 15px; font-weight: 700; margin: 20px 0 12px 0; color: var(--text-dark); border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
+        Bank Account Details (For Reimbursement Transfers)
+      </h3>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="bank_account_number">Bank Account Number</label>
+          <input type="text" id="bank_account_number" name="bank_account_number" class="form-control" value="{{ employee.bank_account_number if employee else '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="bank_ifsc_code">Bank IFSC Code</label>
+          <input type="text" id="bank_ifsc_code" name="bank_ifsc_code" class="form-control" value="{{ employee.bank_ifsc_code if employee else '' }}">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="margin-top: 10px;">
+        Save Profile Changes
+      </button>
+    </form>
+  </div>
+
+  <!-- Change Password Section -->
+  <div class="content-card">
+    <h2 style="font-size: 16px; font-weight: 700; color: var(--text-dark); margin-bottom: 16px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
+      Change Password
+    </h2>
+    <form method="POST" action="{{ url_for('ui.profile_change_password') }}">
+      <div class="form-group">
+        <label class="form-label" for="current_password">Current Password</label>
+        <input type="password" id="current_password" name="current_password" class="form-control" placeholder="Enter current password" required>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="new_password">New Password</label>
+          <input type="password" id="new_password" name="new_password" class="form-control" placeholder="Min 6 characters" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="confirm_password">Confirm New Password</label>
+          <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Re-enter new password" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="margin-top: 10px;">
+        Update Password
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

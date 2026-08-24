@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Financial Reports - ExpenseFlow{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="card-header-bar">
+  <div>
+    <h1 class="page-title">Executive Expense Reports & Analytics</h1>
+    <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Departmental spending summaries, category distribution, and approval metrics</p>
+  </div>
+</div>
+
+<!-- Analytics Summary Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-title">Awaiting Verification</div>
+    <div class="stat-value" style="color: var(--badge-amber-text);">{{ finance_overview.claims_awaiting_verification if finance_overview else 0 }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-title">Verified Claims</div>
+    <div class="stat-value" style="color: var(--primary-blue);">{{ finance_overview.verified_claims if finance_overview else 0 }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-title">Reimbursements Paid</div>
+    <div class="stat-value" style="color: var(--badge-green-text);">{{ finance_overview.completed_reimbursements if finance_overview else 0 }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-title">Total Disbursed</div>
+    <div class="stat-value" style="color: var(--badge-green-text);">&#8377;{{ finance_overview.total_reimbursement_amount if finance_overview else '0.00' }}</div>
+  </div>
+</div>
+
+<!-- Category Distribution Table matching screenshot -->
+<div class="content-card">
+  <div class="card-header-bar" style="margin-bottom: 16px;">
+    <h2 style="font-size: 16px; font-weight: 700; color: var(--text-dark);">Expense Distribution by Category</h2>
+  </div>
+
+  <div class="table-container">
+    <table class="clean-table">
+      <thead>
+        <tr>
+          <th>Category Name</th>
+          <th>Total Claims Count</th>
+          <th>Total Disbursed (₹)</th>
+          <th>Policy Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if category_stats %}
+          {% for cat in category_stats %}
+          <tr>
+            <td style="font-weight: 600;">{{ cat.category_name }}</td>
+            <td style="color: var(--text-muted);">{{ cat.item_count }} item(s)</td>
+            <td style="font-weight: 700; font-size: 14px; color: var(--primary-blue);">₹{{ cat.total_amount }}</td>
+            <td>
+              <span class="badge badge-green">Active Policy</span>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">
+              No category expense records found.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

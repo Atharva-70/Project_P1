@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Finance Operations - ExpenseFlow{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="card-header-bar">
+  <div>
+    <h1 class="page-title">Finance & Reimbursement Operations</h1>
+    <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Verify manager-approved claims and execute reimbursement payouts</p>
+  </div>
+</div>
+
+<!-- 1. Verification Queue Table -->
+<div class="content-card">
+  <div class="card-header-bar" style="margin-bottom: 16px;">
+    <h2 style="font-size: 16px; font-weight: 700; color: var(--text-dark);">Verification Queue ({{ approved_claims|length }})</h2>
+    <span style="font-size: 12px; color: var(--text-muted);">Manager Approved &bull; Pending Finance Audit</span>
+  </div>
+
+  <div class="table-container">
+    <table class="clean-table">
+      <thead>
+        <tr>
+          <th>Claim Number</th>
+          <th>Employee</th>
+          <th>Total Claimed</th>
+          <th>Items / Audit</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if approved_claims %}
+          {% for claim in approved_claims %}
+          <tr>
+            <td style="font-weight: 600;">{{ claim.claim_number }}</td>
+            <td>{{ claim.employee.first_name }} {{ claim.employee.last_name }}</td>
+            <td style="font-weight: 700; font-size: 14px;">₹{{ claim.total_amount }}</td>
+            <td>
+              <a href="{{ url_for('ui.claim_details', claim_id=claim.ex_claim_id) }}" class="btn btn-outline btn-sm">
+                Inspect Line Items &rarr;
+              </a>
+            </td>
+            <td>
+              <form method="POST" action="{{ url_for('ui.finance_verify', claim_id=claim.ex_claim_id) }}">
+                <button type="submit" class="btn btn-primary btn-sm">Verify Claim</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">
+              No claims waiting in the verification queue.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 2. Reimbursement Payout Queue Table -->
+<div class="content-card">
+  <div class="card-header-bar" style="margin-bottom: 16px;">
+    <h2 style="font-size: 16px; font-weight: 700; color: var(--text-dark);">Reimbursement Payouts ({{ verified_claims|length }})</h2>
+    <span style="font-size: 12px; color: var(--text-muted);">Finance Verified &bull; Ready for Bank Disbursal</span>
+  </div>
+
+  <div class="table-container">
+    <table class="clean-table">
+      <thead>
+        <tr>
+          <th>Claim Number</th>
+          <th>Employee & Bank Info</th>
+          <th>Disbursal Amount</th>
+          <th>Bank Reference (UTR / Txn ID)</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if verified_claims %}
+          {% for claim in verified_claims %}
+          <tr>
+            <td style="font-weight: 600;">{{ claim.claim_number }}</td>
+            <td>
+              <strong>{{ claim.employee.first_name }} {{ claim.employee.last_name }}</strong><br>
+              <span style="color: var(--text-muted); font-size: 11px;">
+                A/C: {{ claim.employee.bank_account_number or 'N/A' }} | IFSC: {{ claim.employee.bank_ifsc_code or 'N/A' }}
+              </span>
+            </td>
+            <td style="font-weight: 800; font-size: 15px; color: var(--badge-green-text);">₹{{ claim.total_amount }}</td>
+            <td>
+              <!-- Payout Execution Form -->
+              <form method="POST" action="{{ url_for('ui.process_reimbursement', claim_id=claim.ex_claim_id) }}" style="display: flex; gap: 6px;">
+                <input type="text" name="payment_reference" class="form-control" placeholder="e.g. UTR-HDFC-987654" style="font-size: 12px; padding: 4px 8px; max-width: 200px;" required>
+                <button type="submit" class="btn btn-success btn-sm">Disburse</button>
+              </form>
+            </td>
+            <td>
+              <span class="badge badge-blue">Ready</span>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">
+              No verified claims awaiting payment disbursal.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

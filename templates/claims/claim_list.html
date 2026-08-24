@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}My Expense Claims - ExpenseFlow{% endblock %}
+
+{% block content %}
+<div class="content-card">
+  <div class="card-header-bar">
+    <div>
+      <h1 class="page-title">My Expense Claims</h1>
+      <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Track your submitted claims, approval statuses, and reimbursements</p>
+    </div>
+    <a href="{{ url_for('ui.claim_new') }}" class="btn btn-primary">Create New Claim</a>
+  </div>
+
+  <!-- Search & Filter Toolbar matching user screenshot -->
+  <div class="toolbar-container">
+    <form method="GET" action="{{ url_for('ui.claim_list') }}" class="search-form">
+      <input type="text" name="search" class="search-input" placeholder="Search by claim number or travel..." value="{{ search_query or '' }}">
+      <button type="submit" class="btn btn-outline btn-sm">Search</button>
+    </form>
+
+    <div style="display: flex; gap: 8px;">
+      <a href="{{ url_for('ui.claim_list') }}" class="btn btn-sm {% if not current_status %}btn-primary{% else %}btn-outline{% endif %}">All</a>
+      <a href="{{ url_for('ui.claim_list', status='DRAFT') }}" class="btn btn-sm {% if current_status == 'DRAFT' %}btn-primary{% else %}btn-outline{% endif %}">Drafts</a>
+      <a href="{{ url_for('ui.claim_list', status='SUBMITTED') }}" class="btn btn-sm {% if current_status == 'SUBMITTED' %}btn-primary{% else %}btn-outline{% endif %}">Submitted</a>
+      <a href="{{ url_for('ui.claim_list', status='APPROVED') }}" class="btn btn-sm {% if current_status == 'APPROVED' %}btn-primary{% else %}btn-outline{% endif %}">Approved</a>
+      <a href="{{ url_for('ui.claim_list', status='REIMBURSED') }}" class="btn btn-sm {% if current_status == 'REIMBURSED' %}btn-primary{% else %}btn-outline{% endif %}">Reimbursed</a>
+    </div>
+  </div>
+
+  <!-- Data Table matching user screenshot -->
+  <div class="table-container">
+    <table class="clean-table">
+      <thead>
+        <tr>
+          <th>Claim Number</th>
+          <th>Travel Request</th>
+          <th>Total Amount</th>
+          <th>Status</th>
+          <th>Comments / Status Info</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if claims %}
+          {% for claim in claims %}
+          <tr>
+            <td style="font-weight: 600;">{{ claim.claim_number }}</td>
+            <td style="color: var(--text-muted);">{{ claim.travel_request.travel_request_number if claim.travel_request else 'General' }}</td>
+            <td style="font-weight: 600; font-size: 14px;">₹{{ claim.total_amount }}</td>
+            <td>
+              {% if claim.status == 'APPROVED' %}
+                <span class="badge badge-green">Approved</span>
+              {% elif claim.status == 'FINANCE VERIFIED' %}
+                <span class="badge badge-blue">Verified</span>
+              {% elif claim.status == 'REIMBURSED' %}
+                <span class="badge badge-purple">Reimbursed</span>
+              {% elif claim.status == 'REJECTED' %}
+                <span class="badge badge-red-bg" style="color: var(--badge-red-text); background: var(--badge-red-bg);">Rejected</span>
+              {% elif claim.status == 'SUBMITTED' %}
+                <span class="badge badge-amber">Under Review</span>
+              {% else %}
+                <span class="badge" style="background: var(--bg-canvas); color: var(--text-muted); border: 1px solid var(--border-color);">Draft</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if claim.status == 'REJECTED' %}
+                <div class="error-notice-card" style="padding: 4px 8px; font-size: 11px;">
+                  Requires correction / rejected by manager
+                </div>
+              {% else %}
+                <span style="color: var(--text-muted); font-size: 12px;">Ready for processing</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('ui.claim_details', claim_id=claim.ex_claim_id) }}" class="btn btn-outline btn-sm">Manage &rarr;</a>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">
+              No expense claims found matching your filter.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Controls -->
+  {% if total_pages > 1 %}
+  <div style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 16px 0;">
+    {% if page > 1 %}
+      <a href="{{ url_for('ui.claim_list', page=page-1, status=current_status, search=search_query) }}" class="btn btn-outline btn-sm">&larr; Previous</a>
+    {% endif %}
+    <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Page {{ page }} of {{ total_pages }}</span>
+    {% if page < total_pages %}
+      <a href="{{ url_for('ui.claim_list', page=page+1, status=current_status, search=search_query) }}" class="btn btn-outline btn-sm">Next &rarr;</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

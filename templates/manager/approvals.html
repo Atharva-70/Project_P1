@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Manager Approvals - ExpenseFlow{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="card-header-bar">
+  <div>
+    <h1 class="page-title">Manager Review & Approvals</h1>
+    <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Review submissions and approve/reject claims from your direct reports</p>
+  </div>
+</div>
+
+<!-- Pending Travel Requests Table -->
+<div class="content-card">
+  <div class="card-header-bar" style="margin-bottom: 16px;">
+    <h2 style="font-size: 16px; font-weight: 700; color: var(--text-dark);">Pending Travel Requests ({{ pending_travel|length }})</h2>
+  </div>
+
+  <div class="table-container">
+    <table class="clean-table">
+      <thead>
+        <tr>
+          <th>Request Number</th>
+          <th>Employee</th>
+          <th>Itinerary</th>
+          <th>Dates</th>
+          <th>Purpose</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if pending_travel %}
+          {% for trv in pending_travel %}
+          <tr>
+            <td style="font-weight: 600;">{{ trv.travel_request_number }}</td>
+            <td>{{ trv.employee.first_name }} {{ trv.employee.last_name }}</td>
+            <td style="font-weight: 500;">{{ trv.source }} &rarr; {{ trv.destination }}</td>
+            <td style="color: var(--text-muted);">{{ trv.start_date }} to {{ trv.end_date }}</td>
+            <td>{{ trv.purpose }}</td>
+            <td>
+              <div style="display: flex; gap: 6px;">
+                <form method="POST" action="{{ url_for('ui.travel_approve', travel_id=trv.travel_id) }}">
+                  <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                </form>
+                <form method="POST" action="{{ url_for('ui.travel_reject', travel_id=trv.travel_id) }}">
+                  <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">
+              No pending travel requests for review.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pending Expense Claims Table matching user screenshot -->
+<div class="content-card">
+  <div class="card-header-bar" style="margin-bottom: 16px;">
+    <h2 style="font-size: 16px; font-weight: 700; color: var(--text-dark);">Pending Expense Claims ({{ pending_claims|length }})</h2>
+  </div>
+
+  <div class="table-container">
+    <table class="clean-table">
+      <thead>
+        <tr>
+          <th>Claim Number</th>
+          <th>Employee</th>
+          <th>Travel Route</th>
+          <th>Claim Amount</th>
+          <th>Review / Decision</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if pending_claims %}
+          {% for claim in pending_claims %}
+          <tr>
+            <td style="font-weight: 600;">
+              <a href="{{ url_for('ui.claim_details', claim_id=claim.ex_claim_id) }}">
+                {{ claim.claim_number }} &rarr;
+              </a>
+            </td>
+            <td>{{ claim.employee.first_name }} {{ claim.employee.last_name }}</td>
+            <td style="color: var(--text-muted);">
+              {{ claim.travel_request.source if claim.travel_request else '' }} &rarr; {{ claim.travel_request.destination if claim.travel_request else 'General' }}
+            </td>
+            <td style="font-weight: 700; font-size: 14px; color: var(--primary-blue);">₹{{ claim.total_amount }}</td>
+            <td>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <!-- Approve Form -->
+                <form method="POST" action="{{ url_for('ui.claim_approve', claim_id=claim.ex_claim_id) }}" style="display: inline;">
+                  <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                </form>
+
+                <!-- Reject Form with mandatory comment -->
+                <form method="POST" action="{{ url_for('ui.claim_reject', claim_id=claim.ex_claim_id) }}" style="display: flex; gap: 4px;">
+                  <input type="text" name="comments" class="form-control" placeholder="Rejection reason..." style="font-size: 11px; padding: 4px 8px; max-width: 160px;" required>
+                  <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">
+              No pending expense claims requiring your review.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

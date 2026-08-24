@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}New Travel Request - ExpenseFlow{% endblock %}
+
+{% block content %}
+<div style="max-width: 760px; margin: 0 auto;">
+  <div class="content-card">
+    <div class="card-header-bar">
+      <div>
+        <h1 class="page-title">Submit Business Travel Request</h1>
+      </div>
+      <a href="{{ url_for('ui.travel_list') }}" class="btn btn-outline btn-sm">&larr; Back to List</a>
+    </div>
+
+    <form method="POST" action="{{ url_for('ui.travel_new') }}">
+      <div class="form-group">
+        <label class="form-label" for="travel_request_number">Travel Request Number / Identifier</label>
+        <input type="text" id="travel_request_number" name="travel_request_number" class="form-control" required>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="source">Origin / Departure City</label>
+          <input type="text" id="source" name="source" class="form-control"  required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="destination">Destination City</label>
+          <input type="text" id="destination" name="destination" class="form-control"  required>
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="start_date">Departure Date</label>
+          <input type="date" id="start_date" name="start_date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="end_date">Return Date</label>
+          <input type="date" id="end_date" name="end_date" class="form-control" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="purpose">Business Purpose / Meeting Details</label>
+        <textarea id="purpose" name="purpose" class="form-control" rows="3" required></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+        <a href="{{ url_for('ui.travel_list') }}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary">Submit Travel Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

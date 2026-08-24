@@ -1,0 +1,25 @@
+class ClaimStatus:
+    DRAFT = "DRAFT"
+    SUBMITTED = "SUBMITTED"
+    APPROVED = "APPROVED"
+    FINANCE_VERIFIED = "FINANCE VERIFIED"
+    REIMBURSED = "REIMBURSED"
+    REJECTED = "REJECTED"
+
+
+class TravelStatus:
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+
+
+class ReimbursementStatus:
+    PENDING = "PENDING"
+    PAID = "PAID"
+
+
+class UserRole:
+    EMPLOYEE = "EMPLOYEE"
+    MANAGER = "MANAGER"
+    FINANCE = "FINANCE"
+    ADMIN = "ADMIN"

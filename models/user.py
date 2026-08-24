@@ -1,10 +1,12 @@
 from config.database import db
+from constants.status import UserRole
+
 
 class User(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.Integer, primary_key = True)
-    
+    id = db.Column(db.Integer, primary_key=True)
+
     email = db.Column(
         db.String(200),
         unique=True,
@@ -16,10 +18,13 @@ class User(db.Model):
     )
     role = db.Column(
         db.String(30),
-        nullable=False
+        nullable=False,
+        default=UserRole.EMPLOYEE
     )
     is_active = db.Column(
         db.Boolean,
         nullable=False,
         default=True
     )
+
+    employee = db.relationship("Employee", backref="user", uselist=False)

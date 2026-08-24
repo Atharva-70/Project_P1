@@ -37,3 +37,10 @@ class Employee(db.Model):
         db.ForeignKey("employees.e_id"),
         nullable=True
     )
+
+    # Self-referential relationship for manager hierarchy
+    manager = db.relationship(
+        "Employee",
+        remote_side=[e_id],
+        backref="subordinates"
+    )
