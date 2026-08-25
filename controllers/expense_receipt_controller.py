@@ -2,10 +2,8 @@ import os
 from flask import Blueprint, request, jsonify, send_file, session
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from utils.serializers import receipt_to_dict
-from services.expense_receipt_service import (
-    upload_and_save_receipt,
-    get_receipt_for_download
-)
+from services.expense_receipt_service import upload_and_save_receipt,get_receipt_for_download
+
 
 expense_receipt_bp = Blueprint("expense_receipt", __name__)
 

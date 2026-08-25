@@ -8,7 +8,7 @@
 </head>
 <body>
 
-  <!-- Top Navbar Header matching user screenshot -->
+
   <header class="top-navbar">
     <div class="brand-container">
       <span>Expense Portal</span>
@@ -56,9 +56,7 @@
     {% endif %}
   </header>
 
-  <!-- Main Content Wrapper -->
   <main class="main-wrapper">
-    <!-- Flash Messages (Pure HTML alerts) -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="flash-container">

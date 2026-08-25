@@ -3,14 +3,8 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from utils.role_required import role_required
 from utils.serializers import travel_to_dict
-from services.travel_service import (
-    create_travel_request,
-    get_user_travel_requests,
-    get_travel_request,
-    get_pending_travel_approvals,
-    approve_travel,
-    reject_travel
-)
+from services.travel_service import  create_travel_request, get_user_travel_requests, get_travel_request, get_pending_travel_approvals, approve_travel, reject_travel
+
 
 travel_bp = Blueprint("travel", __name__)
 

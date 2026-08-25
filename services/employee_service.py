@@ -67,24 +67,30 @@ def get_my_profile(user_id):
     return profile_data, None
 
 
-def update_my_profile(user_id, first_name=None, last_name=None):
+def update_my_profile(user_id, first_name=None, last_name=None,
+                      phone=None, department=None, bank_account_number=None,
+                      bank_ifsc_code=None):
     employee = get_employee_by_user_id(user_id)
     if not employee:
         return None, "Employee profile not found"
 
-    if not first_name and not last_name:
+    if not any([first_name, last_name, phone, department, bank_account_number, bank_ifsc_code]):
         return None, "Nothing to update"
 
     updated = update_employee_dao(
         employee=employee,
         first_name=first_name,
-        last_name=last_name
+        last_name=last_name,
+        phone=phone,
+        department=department,
+        bank_account_number=bank_account_number,
+        bank_ifsc_code=bank_ifsc_code
     )
 
     return updated, None
 
 
-def get_my_subordinates(user_id):
+def get_subordinates(user_id):
     manager = get_employee_by_user_id(user_id)
     if not manager:
         return [], "Employee profile not found"

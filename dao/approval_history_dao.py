@@ -7,9 +7,6 @@ def get_approval_history_by_claim_id(claim_id):
 
 
 def create_approval_history_and_update_claim_status(expense_claim, action, action_by, comments):
-    """
-    Executes claim status update and approval history creation within an atomic transaction.
-    """
     try:
         approval_history = ApprovalHistory(
             claim_id=expense_claim.ex_claim_id,

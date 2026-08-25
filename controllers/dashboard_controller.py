@@ -2,17 +2,9 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from utils.role_required import role_required
-from services.dashboard_service import (
-    search_expense_claims,
-    get_employee_dashboard,
-    get_manager_dashboard,
-    get_finance_dashboard,
-    get_reports_summary
-)
+from services.dashboard_service import search_expense_claims,get_employee_dashboard,get_manager_dashboard,get_finance_dashboard,get_reports_summary
 
 dashboard_bp = Blueprint("dashboard", __name__)
-
-
 @dashboard_bp.route("/expense_claim/search", methods=["GET"])
 @jwt_required()
 def search_claims():

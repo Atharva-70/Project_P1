@@ -28,11 +28,11 @@ class TestAuthenticationAuthorization(unittest.TestCase):
     @patch("services.auth_service.create_employee")
     @patch("services.auth_service.create_user")
     @patch("services.auth_service.get_user_by_email")
-    def test_register_user_success(self, mock_get_user, mock_create_user, mock_create_emp):
+    def test_register_user(self, mock_get_user, mock_create_user, mock_create_emp):
         # Mock: Email is not taken
         mock_get_user.return_value = None
 
-        # Mock: User created and returned by DAO
+        # Mock: User created, returned by DAO
         mock_user = MagicMock(spec=User)
         mock_user.id = 1
         mock_user.email = "new_emp@company.com"
@@ -47,15 +47,14 @@ class TestAuthenticationAuthorization(unittest.TestCase):
 
         self.assertEqual(response.status_code, 201)
         data = response.get_json()
-        self.assertEqual(data["email"], "new_emp@company.com")
+        self.assertEqual(data["email"], "new_employee@company.com")
         self.assertEqual(data["role"], "EMPLOYEE")
         self.assertEqual(data["user_id"], 1)
 
-        # Verify DAOs were called with expected arguments
-        mock_get_user.assert_called_once_with("new_emp@company.com")
+        mock_get_user.assert_called_once_with("new_employee@company.com")
         mock_create_user.assert_called_once()
 
-    @patch("services.auth_service.get_user_by_email")        # Mock: Email already exists in database
+    @patch("services.auth_service.get_user_by_email")        # Email already exists in database
     def test_register_duplicate_user(self, mock_get_user):
 
         existing_user = MagicMock(spec=User)
@@ -77,19 +76,18 @@ class TestAuthenticationAuthorization(unittest.TestCase):
             "email": "incomplete@company.com"
         })
 
-        self.assertEqual(response.status_code, 400) # missing field returns 400
+        self.assertEqual(response.status_code, 400) # missing field 
         data = response.get_json()
         self.assertIn("required", data["message"].lower())
 
-    # LOGIN  
+    # Login
 
     @patch("services.auth_service.verify_password")
     @patch("services.auth_service.get_user_by_email")
     def test_login_success(self, mock_get_user, mock_verify_password):
-        # Mock user record
         mock_user = MagicMock(spec=User)
         mock_user.id = 5
-        mock_user.email = "john@company.com"
+        mock_user.email = "anything@gmail.com"
         mock_user.password_hash = "hashed_pass"
         mock_user.role = "EMPLOYEE"
         mock_user.is_active = True
@@ -145,7 +143,7 @@ class TestAuthenticationAuthorization(unittest.TestCase):
     @patch("services.auth_service.verify_password")
     @patch("services.auth_service.get_user_by_email")
     def test_login_inactive_user(self, mock_get_user, mock_verify_password):
-        """Test login fails with 401 when user account is deactivated."""
+
         mock_user = MagicMock(spec=User)
         mock_user.email = "inactive@company.com"
         mock_user.password_hash = "hashed_pass"
@@ -163,10 +161,9 @@ class TestAuthenticationAuthorization(unittest.TestCase):
         data = response.get_json()
         self.assertEqual(data["message"], "User Account is inactive")
 
-    #  JWT TOKEN & ROUTE TESTS 
+    #  JWT token and route tests 
 
     def test_valid_jwt(self):
-        """Test accessing protected route with a valid JWT token."""
         token = create_access_token(identity="10", additional_claims={"role": "MANAGER"})
 
         response = self.client.get("/profile", headers={
@@ -179,7 +176,6 @@ class TestAuthenticationAuthorization(unittest.TestCase):
         self.assertEqual(data["role"], "MANAGER")
 
     def test_without_jwt(self):
-        """Test accessing protected route without a JWT token returns 401."""
         response = self.client.get("/profile")
         self.assertEqual(response.status_code, 401)
 
@@ -209,7 +205,6 @@ class TestAuthenticationAuthorization(unittest.TestCase):
         self.assertEqual(data["category_name"], "Flight")
 
     def test_role_based_access_forbidden_for_employee(self):
-        """Test that an EMPLOYEE token is rejected with 403 Forbidden on Admin endpoints."""
         employee_token = create_access_token(identity="2", additional_claims={"role": "EMPLOYEE"})
 
         response = self.client.post("/categories", json={

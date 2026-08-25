@@ -61,7 +61,7 @@
     <h2 style="font-size: 16px; font-weight: 700; color: var(--text-dark); margin-bottom: 16px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
       Change Password
     </h2>
-    <form method="POST" action="{{ url_for('ui.profile_change_password') }}">
+    <form method="POST" action="{{ url_for('ui.change_password') }}">
       <div class="form-group">
         <label class="form-label" for="current_password">Current Password</label>
         <input type="password" id="current_password" name="current_password" class="form-control" placeholder="Enter current password" required>

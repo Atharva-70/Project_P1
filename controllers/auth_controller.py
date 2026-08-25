@@ -5,8 +5,6 @@ from services.auth_service import register_user, login_user
 from constants.status import UserRole
 
 auth_bp = Blueprint("auth", __name__)
-
-
 @auth_bp.route("/register", methods=['POST'])
 def register():
     data = request.get_json() or {}
@@ -17,8 +15,8 @@ def register():
     first_name = data.get("first_name")
     last_name = data.get("last_name")
 
-    if not email or not password:
-        return jsonify({"message": "Email and password are required"}), 400
+    if not email or not password or not first_name or not last_name:
+        return jsonify({"message": "Missing fields"}), 400
 
     user, error = register_user(
         email=email,

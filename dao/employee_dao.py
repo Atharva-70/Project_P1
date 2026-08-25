@@ -6,7 +6,6 @@ from models.user import User
 def get_employee_by_user_id(user_id):
     emp = Employee.query.filter_by(user_id=user_id).first()
     if not emp:
-        # Auto-initialize employee profile if missing
         user = User.query.get(user_id)
         if user:
             name_part = user.email.split('@')[0] if user.email else f"User{user_id}"
@@ -48,12 +47,22 @@ def create_employee(user_id, emp_code, first_name, last_name, manager_id=None):
     return employee
 
 
-def update_employee(employee, first_name=None, last_name=None, manager_id=None):
+def update_employee(employee, first_name=None, last_name=None, manager_id=None,
+                    phone=None, department=None, bank_account_number=None,
+                    bank_ifsc_code=None):
     if first_name is not None:
         employee.first_name = first_name
     if last_name is not None:
         employee.last_name = last_name
     if manager_id is not None:
         employee.manager_id = manager_id
+    if phone is not None:
+        employee.phone = phone
+    if department is not None:
+        employee.department = department
+    if bank_account_number is not None:
+        employee.bank_account_number = bank_account_number
+    if bank_ifsc_code is not None:
+        employee.bank_ifsc_code = bank_ifsc_code
     db.session.commit()
     return employee

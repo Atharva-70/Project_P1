@@ -1,47 +1,20 @@
 from math import ceil
-from flask import (
-    Blueprint, render_template, request, redirect, url_for, flash, session
-)
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from functools import wraps
 from services.auth_service import login_user, register_user, change_password
 from services.employee_service import get_my_profile, update_my_profile
-from services.travel_service import (
-    create_travel_request,
-    get_user_travel_requests,
-    get_pending_travel_approvals,
-    approve_travel,
-    reject_travel
-)
-from services.expense_claim_service import (
-    create_expense_claim,
-    get_expense_claims,
-    get_expense_claim_by_id,
-    delete_expense_claim,
-    submit_expense_claim,
-    get_pending_manager_approvals,
-    approve_expense_claim_by_manager,
-    reject_expense_claim_by_manager,
-    get_finance_verification_queue,
-    verify_expense_claim_by_finance
-)
-from services.expense_item_service import (
-    create_expense_item,
-    delete_expense_item
-)
+from services.travel_service import create_travel_request,get_user_travel_requests,get_pending_travel_approvals,approve_travel,reject_travel
+from services.expense_claim_service import create_expense_claim,get_expense_claims,get_expense_claim_by_id,delete_expense_claim,submit_expense_claim,get_pending_manager_approvals,approve_expense_claim_by_manager,reject_expense_claim_by_manager,get_finance_verification_queue,verify_expense_claim_by_finance
+from services.expense_item_service import  create_expense_item, delete_expense_item
 from dao.expense_item_dao import get_expense_items_by_claim_id
 from services.expense_category_service import get_all_categories
 from services.expense_receipt_service import upload_and_save_receipt
 from services.approval_history_service import get_claim_history
 from services.reimbursement_service import process_claim_reimbursement
-from services.dashboard_service import (
-    get_employee_dashboard,
-    get_reports_summary
-)
+from services.dashboard_service import get_employee_dashboard,get_reports_summary
 from dao.expense_claim_dao import get_claims_by_status
 
 ui_bp = Blueprint("ui", __name__)
-
-
 def login_required_ui(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -59,7 +32,7 @@ def index():
     return redirect(url_for("ui.login"))
 
 
-# --- AUTHENTICATION ROUTES ---
+# auth routes
 
 @ui_bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -79,11 +52,11 @@ def login():
             flash(error, "danger")
             return render_template("auth/login.html")
 
-        # Fetch employee name
+        # get employee name
         emp, _ = get_my_profile(user.id)
         user_name = f"{emp['first_name']} {emp['last_name']}".strip() if emp and emp.get("first_name") else user.email
 
-        # Save standard session
+        # Save session
         session["user_id"] = user.id
         session["email"] = user.email
         session["user_name"] = user_name
@@ -97,8 +70,8 @@ def login():
 @ui_bp.route("/register", methods=["GET", "POST"])
 def register():
     if request.is_json:
-        from controllers.auth_controller import register as api_register
-        return api_register()
+        from controllers.auth_controller import register as register_api
+        return register_api()
 
     if session.get("user_id") and request.method == "GET":
         return redirect(url_for("ui.dashboard"))
@@ -108,8 +81,7 @@ def register():
         last_name = request.form.get("last_name")
         email = request.form.get("email")
         password = request.form.get("password")
-        role = "EMPLOYEE"  # Public registration securely defaults to EMPLOYEE
-
+        role = "EMPLOYEE"  # default employee
         if not email or not password or not first_name:
             flash("First name, email, and password are required.", "danger")
             return render_template("auth/register.html")
@@ -139,7 +111,7 @@ def logout():
     return redirect(url_for("ui.login"))
 
 
-# --- DASHBOARD & PROFILE ---
+# dashboard
 
 @ui_bp.route("/dashboard")
 @login_required_ui
@@ -165,7 +137,6 @@ def profile_view():
         emp, _ = get_my_profile(user_id)
         return render_template("employee/profile.html", employee=emp, active_page="profile")
 
-    # If not in browser session, delegate to JWT-protected API handler
     from controllers.auth_controller import profile as api_profile
     return api_profile()
 
@@ -201,7 +172,7 @@ def profile_update():
 
 @ui_bp.route("/profile/change-password", methods=["POST"])
 @login_required_ui
-def profile_change_password():
+def change_password():
     user_id = session.get("user_id")
     current_password = request.form.get("current_password")
     new_password = request.form.get("new_password")
@@ -224,7 +195,7 @@ def profile_change_password():
     return redirect(url_for("ui.profile_view"))
 
 
-# --- TRAVEL REQUESTS ---
+#  travel_req
 
 @ui_bp.route("/travel-requests")
 @login_required_ui
@@ -270,7 +241,7 @@ def travel_new():
     return render_template("travel/travel_form.html", active_page="travel")
 
 
-# --- EXPENSE CLAIMS ---
+#  expense_claims
 
 @ui_bp.route("/claims")
 @login_required_ui
@@ -369,7 +340,7 @@ def claim_submit(claim_id):
     return redirect(url_for("ui.claim_details", claim_id=claim_id))
 
 
-# --- EXPENSE ITEMS & RECEIPTS ---
+#  expense items
 
 @ui_bp.route("/claims/<int:claim_id>/items/new", methods=["POST"])
 @login_required_ui
@@ -410,6 +381,8 @@ def item_delete(item_id):
     return redirect(request.referrer or url_for("ui.claim_list"))
 
 
+#expense receipt
+
 @ui_bp.route("/items/<int:item_id>/receipt", methods=["POST"])
 @login_required_ui
 def item_receipt_upload(item_id):
@@ -442,7 +415,7 @@ def item_generate_receipt(item_id):
     return redirect(request.referrer or url_for("ui.claim_list"))
 
 
-# --- MANAGER APPROVALS ---
+# manager approvals
 
 @ui_bp.route("/approvals")
 @login_required_ui
@@ -507,8 +480,7 @@ def claim_reject(claim_id):
         flash(f"Claim #{claim.claim_number} rejected. Employee has been notified.", "success")
     return redirect(url_for("ui.manager_approvals"))
 
-
-# --- FINANCE OPERATIONS ---
+#  finance
 
 @ui_bp.route("/finance")
 @login_required_ui
@@ -550,7 +522,7 @@ def process_reimbursement(claim_id):
     return redirect(url_for("ui.finance_dashboard"))
 
 
-# --- REPORTS ---
+# report
 
 @ui_bp.route("/reports")
 @login_required_ui

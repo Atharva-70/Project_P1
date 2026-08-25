@@ -19,11 +19,6 @@ from flask_jwt_extended import create_access_token
 
 
 class TestRealDatabaseWorkflowIntegration(unittest.TestCase):
-    """
-    Real integration tests using an in-memory SQLite database.
-    Tests end-to-end workflow transitions, database relationships, and business integrity without mocks.
-    """
-
     @classmethod
     def setUpClass(cls):
         cls.app = create_app({
@@ -66,20 +61,7 @@ class TestRealDatabaseWorkflowIntegration(unittest.TestCase):
         return user, emp
 
     def test_full_end_to_end_expense_lifecycle(self):
-        """
-        Complete end-to-end test from travel request to final reimbursement payout:
-        1. Setup Admin, Manager, Employee, and Finance users.
-        2. Admin creates Category and Policy limit.
-        3. Employee submits Travel Request.
-        4. Manager approves Travel Request.
-        5. Employee creates Claim against approved travel.
-        6. Employee adds item within policy limit & uploads receipt.
-        7. Employee submits Claim.
-        8. Manager approves Claim.
-        9. Finance verifies Claim.
-        10. Finance processes Reimbursement payout.
-        11. Audit history timeline & relationships verification.
-        """
+
         # 1. Setup Users
         admin_user, admin_emp = self._create_user_and_employee(
             "admin@corp.com", UserRole.ADMIN, "System", "Admin", "EMP-0001"

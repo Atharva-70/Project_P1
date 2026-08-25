@@ -2,15 +2,9 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from utils.role_required import role_required
 from utils.serializers import employee_to_dict
-from services.employee_service import (
-    create_employee,
-    get_my_profile,
-    update_my_profile,
-    get_my_subordinates
-)
+from services.employee_service import create_employee,get_my_profile,update_my_profile,get_subordinates
 
 employee_bp = Blueprint("employee", __name__)
-
 
 @employee_bp.route("/employee", methods=['POST'])
 @employee_bp.route("/employees", methods=['POST'])
@@ -88,7 +82,7 @@ def update_profile():
 @role_required("MANAGER", "ADMIN")
 def list_subordinates():
     user_id = int(get_jwt_identity())
-    subordinates, error = get_my_subordinates(user_id)
+    subordinates, error = get_subordinates(user_id)
 
     if error:
         return jsonify({"message": error}), 400

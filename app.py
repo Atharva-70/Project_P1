@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 from flask import Flask
 from config.database import init_db, db
 from controllers.ui_controller import ui_bp
@@ -14,23 +16,20 @@ from controllers.reimbursement_controller import reimbursement_bp
 from controllers.dashboard_controller import dashboard_bp
 import models
 
+load_dotenv()
 
-def create_app(test_config=None):
-    app = Flask(__name__)
-    app.secret_key = "SUPER-SECRET-KEY"
+
+def create_app():
+    app = Flask(__name__) 
+    app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-me") 
 
     init_db(app)
-
-    if test_config:
-        app.config.update(test_config)
 
     with app.app_context():
         db.create_all()
 
-    # Register Web UI routes first
+    # Registering Blueprints for APIs
     app.register_blueprint(ui_bp)
-
-    # Register REST API Blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(expense_category_bp)
     app.register_blueprint(expense_policy_bp)

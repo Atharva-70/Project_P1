@@ -2,7 +2,7 @@ def user_to_dict(user):
     if not user:
         return None
     return {
-        "user_id": user.id if isinstance(getattr(user, 'id', None), int) else 1,
+        "user_id": user.id if isinstance(getattr(user, 'id', None), int) else None,
         "email": str(user.email) if getattr(user, 'email', None) is not None else None,
         "role": str(user.role) if getattr(user, 'role', None) is not None else "EMPLOYEE",
         "is_active": bool(user.is_active) if isinstance(getattr(user, 'is_active', None), bool) else True

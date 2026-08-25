@@ -2,13 +2,8 @@ from flask_jwt_extended import jwt_required
 from flask import Blueprint, jsonify, request
 from utils.role_required import role_required
 from utils.serializers import category_to_dict
-from services.expense_category_service import (
-    create_category,
-    get_all_expense_categories,
-    get_expense_category_by_id,
-    update_category,
-    deactivate_category
-)
+from services.expense_category_service import create_category,get_all_expense_categories,get_expense_category_by_id,update_category,deactivate_category
+
 
 expense_category_bp = Blueprint("expense_category", __name__)
 
