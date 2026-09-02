@@ -1,0 +1,9 @@
+myenv/
+__pycache__/
+*.pyc
+.env
+.vscode/
+.git/
+.gitignore
+P1-REQUIREMENTS.pdf
+tests/

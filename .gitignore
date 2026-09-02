@@ -25,3 +25,5 @@ output/
 # OS files
 Thumbs.db
 .DS_Store
+
+kubernetes/secret.yaml
