@@ -1,6 +1,15 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()
+    }
+
+    environment {
+        DOCKER_IMAGE = 'atharva903/expenseflow:latest'
+        ALERT_EMAIL = 'mahaleatharva5@gmail.com'
+    }
+
     stages {
 
         stage('Checkout') {
@@ -11,7 +20,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t atharva903/expenseflow:latest .'
+                sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
 
@@ -25,9 +34,38 @@ pipeline {
                     )
                 ]) {
                     sh 'echo $DOCKER_PASSWORD | docker login --username $DOCKER_USER --password-stdin'
-                    sh 'docker push atharva903/expenseflow:latest'
+                    sh 'docker push $DOCKER_IMAGE'
                 }
             }
+        }
+    }
+
+    post {
+
+        success {
+            emailext(
+                subject: "SUCCESS ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    <h2>Jenkins Build Successful</h2>
+                    <p><b>Job:</b> ${env.JOB_NAME}</p>
+                    <p><b>Build:</b> #${env.BUILD_NUMBER}</p>
+                    <p><b>URL:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                """,
+                to: "${ALERT_EMAIL}"
+            )
+        }
+
+        failure {
+            emailext(
+                subject: "FAILED ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    <h2>Jenkins Build Failed</h2>
+                    <p><b>Job:</b> ${env.JOB_NAME}</p>
+                    <p><b>Build:</b> #${env.BUILD_NUMBER}</p>
+                    <p><b>URL:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                """,
+                to: "${ALERT_EMAIL}"
+            )
         }
     }
 }
