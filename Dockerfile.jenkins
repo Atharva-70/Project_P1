@@ -1,0 +1,33 @@
+FROM python:3.13-slim AS python
+
+RUN pip install --no-cache-dir pytest
+
+
+FROM jenkins/jenkins:lts
+
+USER root
+
+# Copy Python and pip from the Python image
+COPY --from=python /usr/local/bin/python3.13 /usr/local/bin/python3.13
+COPY --from=python /usr/local/bin/pip3.13 /usr/local/bin/pip3.13
+COPY --from=python /usr/local/lib/python3.13 /usr/local/lib/python3.13
+COPY --from=python /usr/local/lib/libpython3.13.so.1.0 /usr/local/lib/libpython3.13.so.1.0
+
+
+# Python commands
+RUN ln -s /usr/local/bin/python3.13 /usr/local/bin/python3 && \
+    ln -s /usr/local/bin/python3.13 /usr/local/bin/python && \
+    ln -s /usr/local/bin/pip3.13 /usr/local/bin/pip3 && \
+    ln -s /usr/local/bin/pip3.13 /usr/local/bin/pip
+
+# Copy pytest and its dependencies
+COPY --from=python /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=python /usr/local/bin/pytest /usr/local/bin/pytest
+
+# Copy Docker CLI
+COPY --from=docker:cli /usr/local/bin/docker /usr/local/bin/docker
+
+# Allow Jenkins to access Docker socket
+RUN usermod -aG root jenkins
+
+USER jenkins
