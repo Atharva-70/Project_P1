@@ -26,7 +26,7 @@ pipeline {
                     withSonarQubeEnv('SonarQube') {
                         sh """
                             ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=ExpenseFlow \
+                            -Dsonar.projectKey=expenseflow \
                             -Dsonar.sources=.
                         """
                     }
