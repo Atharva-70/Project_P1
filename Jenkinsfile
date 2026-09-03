@@ -18,6 +18,30 @@ pipeline {
             }
         }
 
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'SonarScanner'
+
+                    withSonarQubeEnv('SonarQube') {
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=ExpenseFlow \
+                            -Dsonar.sources=.
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $DOCKER_IMAGE .'
@@ -44,7 +68,7 @@ pipeline {
 
         success {
             emailext(
-                subject: "SUCCESS ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                subject: "Successful build for ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """
                     <p>Jenkins Build Successful</p>
                     <p><b>Job:</b> ${env.JOB_NAME}</p>

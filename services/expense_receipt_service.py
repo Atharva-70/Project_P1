@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from werkzeug.utils import secure_filename
 from dao.expense_item_dao import get_expense_item_by_id
 from dao.expense_claim_dao import get_claim_by_id
@@ -109,7 +109,7 @@ def generate_pdf_receipt(user_id, expense_item_id, upload_folder="uploads/receip
     # Ensure directory exists
     os.makedirs(upload_folder, exist_ok=True)
 
-    timestamp = int(datetime.utcnow().timestamp())
+    timestamp = int(datetime.now(timezone.utc).timestamp())
     filename = f"Digital_Receipt_Item_{expense_item_id}_{timestamp}.pdf"
     file_path = os.path.join(upload_folder, filename)
 
@@ -170,7 +170,7 @@ def generate_pdf_receipt(user_id, expense_item_id, upload_folder="uploads/receip
     elements.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#2563eb'), spaceAfter=14))
 
     # 2. Metadata Grid (2-Column Info Table)
-    now_str = datetime.utcnow().strftime("%d %b %Y, %I:%M %p UTC")
+    now_str = datetime.now(timezone.utc).strftime("%d %b %Y, %I:%M %p UTC")
     meta_left = f"""
     <b>Receipt ID:</b> REC-{expense_item_id}-{timestamp}<br/>
     <b>Issue Date:</b> {now_str}<br/>

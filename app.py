@@ -42,7 +42,7 @@ def create_app():
     app.register_blueprint(reimbursement_bp)
     app.register_blueprint(dashboard_bp)
 
-    @app.route("/health")
+    @app.route("/health", methods=["GET"])
     def health():
         return {"status":"ok"}, 200
 
